@@ -16,8 +16,6 @@ class annotator:
         self.ANNOTATION_FILE = "violations-output/violations.json"
         self.SUSPECT_TO_QUERY = [5, 6, 9]
         self.SUSPECT_NAME_MATCHING = ['TrainContact', 'WorkerSighting', 'VegEncroaching']
-        pass
-
 
         # Load annotations
         with open(os.path.join(self.DATA_DIR, self.ANNOTATION_FILE), 'r') as f:
@@ -70,13 +68,8 @@ class annotator:
             cv2.putText(img_copy, label, (x, int(y + (h/2) - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
         return img_copy
 
-    # Global state for click
-    selected_click = None
-
-    def draw_rectangle(self, event, x, y, flags, param):
-        global ix, iy, drawing, box, img, img_copy
-
-        ix, iy = x, y
+    def get_mouse_position(self, event, x, y, flags, param):
+        self.ix, self.iy = x, y
 
 
     # Find next recommended frame
@@ -129,7 +122,7 @@ class annotator:
 
     def main(self):
         cv2.namedWindow('Output')
-        cv2.setMouseCallback("Output", self.draw_rectangle)
+        cv2.setMouseCallback("Output", self.get_mouse_position)
 
         # Main loop
         current_index = 0
@@ -203,23 +196,23 @@ class annotator:
 
             # U - train contact
             if(key == 117):
-                new_violation = self.generate_manual_entry('TrainContact', ix, iy, img_h, img_w)
+                new_violation = self.generate_manual_entry('TrainContact', self.ix, self.iy, img_h, img_w)
                 self.annotations[f'frame_{image_name.split('.')[0]}'].append(new_violation)
 
             # I - WorkerSighting
             if(key == 105):
-                new_violation = self.generate_manual_entry('WorkerSighting', ix, iy, img_h, img_w)
+                new_violation = self.generate_manual_entry('WorkerSighting', self.ix, self.iy, img_h, img_w)
                 self.annotations[f'frame_{image_name.split('.')[0]}'].append(new_violation)
 
             # O - vegencroaching
             if(key == 111):
-                new_violation = self.generate_manual_entry('VegEnchroachment', ix, iy, img_h, img_w)
+                new_violation = self.generate_manual_entry('VegEnchroachment', self.ix, self.iy, img_h, img_w)
                 self.annotations[f'frame_{image_name.split('.')[0]}'].append(new_violation)
             
             # Save outputs after we might have changed something before we quit
             with open(os.path.join(self.DATA_DIR, 'violations-output/violations-annotated.json'), 'w') as f:
                 json.dump(self.annotations, f)
-                
+
             #ESC - Quit
             if(key==27):
                 quit()
